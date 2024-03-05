@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import datetime
 
 SKIPS = ['no-meta', 'upsert-meta']
 
@@ -25,14 +26,14 @@ def build_meta(commit_message: str) -> int:
     for b in briefings:
         if b not in briefings_meta:
             with open(f'briefings/.meta/{b}.meta', 'w') as f:
-                f.write(f"category: {category}\nvisible: {visible}\n")
+                f.write(f"{category}\n{int(bool(visible))}\n{datetime.utcnow().isoformat()}")
             print(f"Created meta file for {b}")
     for bm in briefings_meta:
         if bm not in briefings:
             os.remove(f'briefings/.meta/{bm}.meta')
             print(f"Removed meta file for {bm}")
     os.system('git add briefings/')
-    os.system('git commit -m"upsert-meta')
+    os.system('git commit -m"upsert-meta"')
     return 0
 
 def install_hook():
