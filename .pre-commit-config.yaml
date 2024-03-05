@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: build-meta
+        name: meta
+        entry: python3 build_meta.py
+        language: system
+        always_run: true
+        stages: [commit-msg]
