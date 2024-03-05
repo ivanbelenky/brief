@@ -3,6 +3,8 @@ import sys
 from datetime import datetime
 
 SKIPS = ['no-meta', 'upsert-meta']
+BUILD_META = 'build_meta'
+ADD_COMMIT_META = 'add_commit_meta'
 
 
 def build_meta(commit_message: str) -> int:
@@ -32,21 +34,41 @@ def build_meta(commit_message: str) -> int:
         if bm not in briefings:
             os.remove(f'briefings/.meta/{bm}.meta')
             print(f"Removed meta file for {bm}")
-    os.system('git add briefings/')
-    os.system('git commit -m"upsert-meta"')
     return 0
 
-def install_hook():
-    hook = """#!/bin/sh\npython3 build_meta.py $1\n"""
+
+def add_commit():
+    os.system('git add briefings/.meta/*')
+    os.system('chmod -x .git/hooks/post-commit')
+    os.system('git commit -m "upsert-meta" --no-verify')
+    os.system('chmod +x .git/hooks/post-commit')
+    return 0
+
+
+HOOK_DISPATCHER = {
+    BUILD_META: build_meta,
+    ADD_COMMIT_META: add_commit,
+}
+
+
+def prepare_commit_msg_hook():
+    hook = f"""#!/bin/sh\npython3 hooks.py {BUILD_META} $1\n"""
     with open('.git/hooks/prepare-commit-msg', 'w') as f:
         f.write(hook)
     os.system('chmod +x .git/hooks/prepare-commit-msg')
 
+
+def post_commit_hook():
+    hook = f"""#!/bin/sh\npython3 hooks.py {ADD_COMMIT_META}\n"""
+    with open('.git/hooks/post-commit', 'w') as f:
+        f.write(hook)
+    os.system('chmod +x .git/hooks/post-commit')
+
+
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'install':
-        install_hook()
+        prepare_commit_msg_hook()
+        post_commit_hook()
     else:
-        if len(sys.argv) < 2:
-            print("Usage: python3 build_meta.py <commit_message>")
-            sys.exit(1)
-        sys.exit(build_meta(sys.argv[1]))
+        if len(sys.argv) < 2: sys.exit(1)
+        sys.exit(HOOK_DISPATCHER[sys.argv[1]](*sys.argv[2:]))
