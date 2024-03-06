@@ -6,3 +6,5 @@ Argentina's economic history, marked by crises like the "Rodrigazo" in the 1970s
 <br/>
 
 <img style="width:100%;heigh:100%;justify-content:center"  src="https://github.com/ivanbelenky/ARED/blob/master/assets/usdm2evolution.png?raw=true"/>
+
+more info [here](https://github.com/ivanbelenky/ARED)
