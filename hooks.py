@@ -40,7 +40,7 @@ def build_meta(commit_message: str) -> int:
 
 
 def add_commit():
-    os.system('git add briefings/.meta/*')
+    os.system('git add briefings/')
     os.system('mv .git/hooks/post-commit .git/hooks/post-commit.disabled')
     os.system('git commit -m "upsert-meta" --no-verify')
     os.system('mv .git/hooks/post-commit-disabled .git/hooks/post-commit')
