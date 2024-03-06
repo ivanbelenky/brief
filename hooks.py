@@ -13,34 +13,50 @@ def build_meta(commit_message: str) -> int:
     print(f"briefings: {briefings}")
     print(f"briefings_meta: {briefings_meta}")
 
+    to_remove = []
     for bm in briefings_meta:
         if bm not in briefings:
-            os.remove(f'briefings/.meta/{bm}.meta')
+            to_remove.append(f'briefings/.meta/{bm}.meta')
             print(f"Removed meta file for {bm}")
 
+    to_create_meta = []
+    for b in briefings:
+        if b not in briefings_meta: to_create_meta.append(b)
+
     with open(commit_message, 'r') as f: commit_message = f.read().strip()
-    if any(skip in commit_message for skip in SKIPS): return 0
     try:
         category, visible = commit_message.split(',')
         visible = int(visible)
-    except ValueError:
-        print("Invalid commit message. Expected format: 'category,visible' or 'no-meta' "
-              "if unrelated to new article")
-        return 1
+    except ValueError: category = visible = None
+    is_valid = all(c is not None for c in [category, visible])
 
-    for b in briefings:
-        if b not in briefings_meta:
-            with open(f'briefings/.meta/{b}.meta', 'w') as f:
-                f.write(f"{category}\n{int(bool(visible))}\n{datetime.utcnow().isoformat()}")
-            print(f"Created meta file for {b}")
 
-    print(f"category: {category}, visible: {visible}")
+    if to_create_meta:
+        if not is_valid:
+            print("Invalid commit message, must be in the form of 'category,visible' where visible is 0 or 1")
+            return 1
+        elif len(to_create_meta) > 1:
+            print("Cannot create meta files for multiple briefings in a single commit")
+            return 1
+
+        with open(f'briefings/.meta/{to_create_meta[0]}.meta', 'w') as f:
+            f.write(f"{category}\n{int(bool(visible))}\n{datetime.utcnow().isoformat()}")
+        print(f"Created meta file for {b}")
+
+    if to_remove:
+        for tr in to_remove:
+            os.remove(tr)
+            print(f"Removed meta file {tr}")
 
     return 0
 
 
 def add_commit():
-    os.system('git add briefings/')
+    os.system('git add briefings/.meta/*')
+    # check if there is any meta file to commit
+    if os.system('git diff --cached --quiet') == 0:
+        print("No meta files to commit")
+        return 0
     os.system('mv .git/hooks/post-commit .git/hooks/post-commit.disabled')
     os.system('git commit -m "upsert-meta" --no-verify')
     os.system('mv .git/hooks/post-commit-disabled .git/hooks/post-commit')
