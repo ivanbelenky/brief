@@ -8,9 +8,17 @@ ADD_COMMIT_META = 'add_commit_meta'
 
 
 def build_meta(commit_message: str) -> int:
-    with open(commit_message, 'r') as f: commit_message = f.read().strip()
-    print(f"commit_message: {commit_message}")
+    briefings = [b.replace('.md', '') for b in os.listdir('briefings') if b.endswith('.md')]
+    briefings_meta = [bm.replace('.meta', '') for bm in os.listdir('briefings/.meta') if bm.endswith('.meta')]
+    print(f"briefings: {briefings}")
+    print(f"briefings_meta: {briefings_meta}")
 
+    for bm in briefings_meta:
+        if bm not in briefings:
+            os.remove(f'briefings/.meta/{bm}.meta')
+            print(f"Removed meta file for {bm}")
+
+    with open(commit_message, 'r') as f: commit_message = f.read().strip()
     if any(skip in commit_message for skip in SKIPS): return 0
     try:
         category, visible = commit_message.split(',')
@@ -20,28 +28,22 @@ def build_meta(commit_message: str) -> int:
               "if unrelated to new article")
         return 1
 
-    print(f"category: {category}, visible: {visible}")
-    briefings = [b.replace('.md', '') for b in os.listdir('briefings') if b.endswith('.md')]
-    briefings_meta = [bm.strip('.meta') for bm in os.listdir('briefings/.meta')]
-    print(f"briefings: {briefings}")
-    print(f"briefings_meta: {briefings_meta}")
     for b in briefings:
         if b not in briefings_meta:
             with open(f'briefings/.meta/{b}.meta', 'w') as f:
                 f.write(f"{category}\n{int(bool(visible))}\n{datetime.utcnow().isoformat()}")
             print(f"Created meta file for {b}")
-    for bm in briefings_meta:
-        if bm not in briefings:
-            os.remove(f'briefings/.meta/{bm}.meta')
-            print(f"Removed meta file for {bm}")
+
+    print(f"category: {category}, visible: {visible}")
+
     return 0
 
 
 def add_commit():
     os.system('git add briefings/.meta/*')
-    os.system('chmod -x .git/hooks/post-commit')
+    os.system('mv .git/hooks/post-commit .git/hooks/post-commit.disabled')
     os.system('git commit -m "upsert-meta" --no-verify')
-    os.system('chmod +x .git/hooks/post-commit')
+    os.system('mv .git/hooks/post-commit-disabled .git/hooks/post-commit')
     return 0
 
 
