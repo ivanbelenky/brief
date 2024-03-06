@@ -2,7 +2,6 @@ import os
 import sys
 from datetime import datetime
 
-SKIPS = ['no-meta', 'upsert-meta']
 BUILD_META = 'build_meta'
 ADD_COMMIT_META = 'add_commit_meta'
 
@@ -52,7 +51,7 @@ def build_meta(commit_message: str) -> int:
 
 
 def add_commit():
-    os.system('git add briefings/.meta/*')
+    os.system('git add briefings/.meta')
     # check if there is any meta file to commit
     if os.system('git diff --cached --quiet') == 0:
         print("No meta files to commit")
