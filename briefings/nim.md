@@ -43,9 +43,8 @@ Then I stopped and tried to organize myself after chasing falling stars in my mi
 What the fuck I said? Despite the non-necessity of an observer to conceptualize this events, this was clearly a case where truth seem to be extremely dependenig on us humans, and the timescale we inhabit. So I thought about the tigers that we, as a technological civilization, were able to invent. Almost instantly, instantaneous messaging apps crossed my mind. I was probably biased by the recent pandemic-effects-on-communication like thoughts.
 
 It is, and it was cliché already to state pseudo truths that `im` apps had cons, despite the amazing benefits they brought to us. Mostly because it was/is common to state the damage that the human-attention-hacking-technologies have. So in order to avoid this pitfall (and me remembering when I used to send handwritten letters to previous girlfriends) I decided to abandon any temptation to """demonize""" this tech. After all, there is no need to implement one way of communicating with each other. I also determined that the major problem that `im` technology brought upon on us, was the idea that we could not negotiate the timescale at which some conversations would like to happen, based upon the experience of the informal communication protocol agreed between humans. This may vary between """cultures""" (I use triple quotes when I feel cringe about a word I am using).
-<center>
 
-```sh
+```
     0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -67,7 +66,6 @@ It is, and it was cliché already to state pseudo truths that `im` apps had cons
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
 
-</center>
 
 
 The impression I have from my conversations is that
