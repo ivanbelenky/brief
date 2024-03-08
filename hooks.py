@@ -55,7 +55,7 @@ def add_commit():
     os.system('git add briefings/.meta')
     os.system('mv .git/hooks/post-commit .git/hooks/post-commit.disabled')
     os.system('git commit -m "upsert-meta" --no-verify')
-    os.system('mv .git/hooks/post-commit-disabled .git/hooks/post-commit')
+    os.system('mv .git/hooks/post-commit.disabled .git/hooks/post-commit')
     return 0
 
 
