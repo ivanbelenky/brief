@@ -6,7 +6,8 @@ BUILD_META = 'build_meta'
 ADD_COMMIT_META = 'add_commit_meta'
 
 
-def build_meta(commit_message: str) -> int:
+def build_meta(commit_message: str, secondarg) -> int:
+    print(secondarg)
     briefings = [b.replace('.md', '') for b in os.listdir('briefings') if b.endswith('.md')]
     briefings_meta = [bm.replace('.meta', '') for bm in os.listdir('briefings/.meta') if bm.endswith('.meta')]
     print(f"briefings: {briefings}")
@@ -52,10 +53,6 @@ def build_meta(commit_message: str) -> int:
 
 def add_commit():
     os.system('git add briefings/.meta')
-    # check if there is any meta file to commit
-    if os.system('git diff --cached --quiet') == 0:
-        print("No meta files to commit")
-        return 0
     os.system('mv .git/hooks/post-commit .git/hooks/post-commit.disabled')
     os.system('git commit -m "upsert-meta" --no-verify')
     os.system('mv .git/hooks/post-commit-disabled .git/hooks/post-commit')
@@ -69,7 +66,7 @@ HOOK_DISPATCHER = {
 
 
 def prepare_commit_msg_hook():
-    hook = f"""#!/bin/sh\npython3 hooks.py {BUILD_META} $1\n"""
+    hook = f"""#!/bin/sh\npython3 hooks.py {BUILD_META} $1 $2\n"""
     with open('.git/hooks/prepare-commit-msg', 'w') as f:
         f.write(hook)
     os.system('chmod +x .git/hooks/prepare-commit-msg')
