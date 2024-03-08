@@ -27,6 +27,7 @@ Something had to be done with this invasion,  I bet that the fantasic `lake + mo
 they basically eradicated the horseflies but disrupted the ecosystem in major ways, aiding the proliferation of normal mosquitos and killing a whole bunch of native insects. The usual trope about huamns shortcircuiting the **normal** timescale of events, and this implicating drastic and undesired changes. The story that has been told is that scientists took the initiative and brought this exotic species to satisfy the needs of the aforementioned hikers and locals alike, who diligently massacred the horsefly every day of their lives. At least this was the remembrance I had when I spotted one yellow bug in the distance. Apparently, the truth is that they came aboard boats something like a century ago.
 
 So, after devising this yellow spot a couple of meters away, my mental state was pretty near to the embedding of the word **shortcircuit** and the formalization of the dynamics of the human aided wasp invation. I thought to myself
+
 - what would have happened if the invasion was slow
     - what would account as slow?
     - would I say that this event was disruptive?
@@ -37,6 +38,7 @@ So, after devising this yellow spot a couple of meters away, my mental state was
 - I thought of tigers again
 
 Then I stopped and tried to organize myself after chasing falling stars in my mind. Firstly I decided upon the idea that the reason why we call this disruptive it is strictly associated with our built in inutitions surrounding speed of effects. Naive and disinformed idea I suspected, because I lacked examples of natural invasions of exotic species, but nevertheless it proved to be useful. I did go back to tigers, imagining two scenarios
+
 - omg scenario: some rich guy brings a couple of baby tigers on a boat, they escape, procreate, proliferate and eat every single moving thing out there. OMG scenario indeed, disruptive, acts of human negligence and ignorance, disobeying the natural order.
 - the pachamama scenario: some tiger way up north alongside the Andes, starts to move downards, and fights for spreading its realm, or at least, moves it without expanding it southernly. The land it starts incursioning in, is plagued with challenges. Generations are needed to stretch their territory a couple hundred kilometers. They finally arrive at my river, after a slow generationwide process, and sensible pace. Locals see slight changes in their lifetime with regards to this, nobody calls this disruptive, everything is as it was, with subtle differences, spottable only by the eldest and wisest. And tigers are integrated into the representation of humans experiencing this woods, this river, with no hiccups.
 
