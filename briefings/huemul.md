@@ -61,12 +61,14 @@ but we know that this...
 As it reads, it never happened. Lets break down what happened. This guy had an enormous circuit that attempted to confine plasma. He had measuring devices to measure the temperature and the elements burnt in the reaction. Devices then, would indicate the success or not of the experiment. So in summary:
 
 Measurement device:
+
 - one of the measuring device needed to displace a plaque along two rails
 - the rails were shaky
 - they shook (scared to death scared to look this halfway crooks (8))
 - the measurement was spurious and defective
 
 Richter:
+
 - knew this, and he did not care
 - knew he and his "project" were in danger
 - decided not to replicate the experiment
