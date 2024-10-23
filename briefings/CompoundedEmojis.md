@@ -1,6 +1,7 @@
 # Compounded Emojis
 
-I just learned today that some emojis are concatenations of codepoints that represent other emojis.
+I just learned that some emojis are concatenations of codepoints that represent other emojis.
+
 disclaimer: **empty spaces** are unrenderable bytes
 
 
