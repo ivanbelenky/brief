@@ -4,7 +4,7 @@
 
 Lets build graphs from functions. By graph, I don't mean graphic, by graph I mean the actual data structure.
 
-For this purpose, imagine the following. I will grab a subset of a domain in $R$, namely $D$, for this subset I will create $N$ equidistant samples, this samples are going to be the nodes of my graph. The nodes of my graph are going to be connected in the following way.
+For this purpose, imagine the following. I will grab a subset of a domain in **R**, namely **D**, for this subset I will create **N** equidistant samples, this samples are going to be the nodes of my graph. The nodes of my graph are going to be connected in the following way.
 
 given $$f(x): D \rightarrow D'$$  with $$ D' \subseteq D $$, we build a graph with an adjacency matrix defined by $$A_{ij}$$
 the domain is divided in N intervals forming the enumerable finite set $$\{ \min(D) + i \cdot h \ | \ i \in [0, N-1]\ \ \text{and} \ h := \frac{\max(D) - \min(D)}{N}\}$$ where each element is denoted by $$x_i$$ respectively
