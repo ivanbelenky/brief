@@ -46,7 +46,8 @@ What the fuck I said? Despite the non-necessity of an observer to conceptualize 
 
 It is, and it was cliché already to state pseudo truths that `im` apps had cons, despite the amazing benefits they brought to us. Mostly because it was/is common to state the damage that human-attention-hacking-technologies have. So in order to avoid this pitfall (and remembering when I used to send handwritten letters) I decided to abandon any temptation to """demonize""" this tech and fall into a false dilemma. After all, there is no need to implement just ONE way of communicating with each other. I also determined that the major problem that `im` technology brought upon on us, was the idea that we could not negotiate the timescale at which some conversations happen. This was exclusively based upon the experience of the informal communication protocol agreed between humans I've experienced. This may vary between """cultures""" (I use triple quotes when I feel cringe about a word I am using).
 
-```
+<pre>
+    <code>
     0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -66,7 +67,8 @@ It is, and it was cliché already to state pseudo truths that `im` apps had cons
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                             data                              |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-```
+    </code>
+</pre>
 
 
 
