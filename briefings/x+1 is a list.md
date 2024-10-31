@@ -1,5 +1,7 @@
 # x+1 is a list
 
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+
 Lets build graphs from functions. By graph, I don't mean graphic, by graph I mean the actual data structure.
 
 For this purpose, imagine the following. I will grab a subset of a domain in $R$, namely $D$, for this subset I will create $N$ equidistant samples, this samples are going to be the nodes of my graph. The nodes of my graph are going to be connected in the following way.
