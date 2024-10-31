@@ -28,4 +28,4 @@ def build_graph(min_d: float, max_d: float, N: int, fn: Callable[[float], float]
 
 with this setting $f(x) = x+1$ gives birth to a list
 
-<img style="width:50%;height:50%;justify-content:center"  src="../assets/x+1.png"/>
+<img style="width:50%;height:50%;justify-content:center"  src="https://github.com/ivanbelenky/brief/blob/master/assets/x+1.png?raw=true"/>
