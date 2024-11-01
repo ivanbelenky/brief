@@ -26,9 +26,11 @@ def build_meta(commit_message: str, secondarg) -> int:
     with open(commit_message, 'r') as f: commit_message = f.read().strip()
     try:
         category, visible = commit_message.split(',')
-        visible = int(visible)
-    except ValueError: category = visible = None
-    is_valid = all(c is not None for c in [category, visible])
+        is_visible = int(visible) # type ignore
+    except ValueError:
+        category = None
+        is_visible = None
+    is_valid = all(c is not None for c in [category, is_visible])
 
 
     if to_create_meta:
@@ -40,7 +42,7 @@ def build_meta(commit_message: str, secondarg) -> int:
             return 1
 
         with open(f'briefings/.meta/{to_create_meta[0]}.meta', 'w') as f:
-            f.write(f"{category}\n{int(bool(visible))}\n{datetime.utcnow().isoformat()}")
+            f.write(f"{category}\n{int(bool(is_visible))}\n{datetime.utcnow().isoformat()}")
         print(f"Created meta file for {b}")
 
     if to_remove:
@@ -85,4 +87,4 @@ if __name__ == '__main__':
         post_commit_hook()
     else:
         if len(sys.argv) < 2: sys.exit(1)
-        sys.exit(HOOK_DISPATCHER[sys.argv[1]](*sys.argv[2:]))
+        sys.exit(HOOK_DISPATCHER[sys.argv[1]](*sys.argv[2:])) # type: ignore
