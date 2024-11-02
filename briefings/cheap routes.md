@@ -1,8 +1,5 @@
 # US Routing: cheap routes
 
-<center><img style="width:75%;height:750%;justify-content:center"  src="https://github.com/ivanbelenky/us-routing/raw/master/assets/usroutegraph.png?raw=true"/></center>
-
-
 <br/>
 If you can afford a couple of miles of error, you can benefit greatly from a pre-cached and optimized graph of all the United States major routes.
 
@@ -16,8 +13,9 @@ install it with your favorite package manager
 
 and then just
 
-<pre><code>
-from us_routing import get_route
-
+<pre><code>from us_routing import get_route
 r = get_route('New York', 'Los Angeles', edge_distance="DURATION")
 </code></pre>
+
+
+<center><img style="width:75%;height:750%;justify-content:center"  src="https://github.com/ivanbelenky/us-routing/raw/master/assets/usroutegraph.png?raw=true"/></center>
