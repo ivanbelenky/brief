@@ -1,5 +1,14 @@
 # capacitor meets square wave meets geometric series
 
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+
 ## Problem Statement
 
 We'll analyze the charge present in a capacitor under the influence of a square wave with symmetric semi-period and positive average value. The step function takes the values:
@@ -18,6 +27,7 @@ During discharge (when voltage = 0):
 $$q(t) = q_{in} \ e^{\frac{-t}{\tau}}$$
 
 where:
+
 - $\text{E}$ is the voltage source value
 - $\text{C}$ is capacitance
 - $\tau$ is the time constant
@@ -30,6 +40,7 @@ From $q_{2n}$ to $q_{2n+1}$, we can express:
 $$q_{2n+1} = E C + (q_{2n} - E C) e^{\frac{-T}{2 \tau}} = E C (1 - e^{\frac{-T}{2 \tau}})+ q_{2n} e^{\frac{-T}{2 \tau}}$$
 
 where:
+
 - $\text{Q} = \text{EC}$
 - $\alpha = e^{\frac{-T}{2 \tau}}$
 
