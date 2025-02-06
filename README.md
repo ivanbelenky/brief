@@ -1,6 +1,6 @@
 # <span style="color:orange"> be-brief 💼 </span>
 
-### be brief and carry my briefcase, light, but full with mental spasms
+### be brief
 ---
 
 A couple of years ago, I had to start repeating to myself, in a mantra-ish way, `brief`, `be brief`, or any word/phrase close to its meaning.
