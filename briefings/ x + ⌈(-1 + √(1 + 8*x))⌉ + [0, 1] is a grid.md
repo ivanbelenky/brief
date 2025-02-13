@@ -9,12 +9,16 @@ From the post $$x + 1 \ \text{is a list}$$ and from the most recent one $$\begin
 
 With the help of my dearest Fama, we saw that a top bottom level ordering from a single node gives rise to
 
-```sh
+<pre>
+  <code>
 1
 2 3
 4 5 6
 7 8 9 10
-```
+  </code>
+</pre>
+
+
 where each level L items was upper bounded by $$\sum_{i=1}^{L+1} i = \frac{L^2 + L}{2}$$ and lower bounded similarly by $$ \frac{L^2 - 2L}{2}$$. So given that this two bounds imply 1 level of separation, the "level" for all other integers will be non integer. This can be seen by setting the equality for
 
 $$j=\frac{L^2 + L}{2}$$
