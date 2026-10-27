@@ -3,3 +3,6 @@
 __pycache__
 *.egg-info
 dumpgh.py
+scratch/
+.DS_Store
+Pipfile
