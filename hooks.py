@@ -265,13 +265,67 @@ def draft(root: Path, title: str, category: str) -> Path:
     return path
 
 
-def automatic_plan(root: Path, entries: dict, changes: list, message: str):
+def parse_article_renames(raw: bytes) -> dict[str, str]:
+    fields = iter(raw.split(b"\0"))
+    renames = {}
+    for status in fields:
+        if not status:
+            continue
+        old = os.fsdecode(next(fields))
+        new = os.fsdecode(next(fields))
+        if status.startswith(b"R") and article_path(old) and article_path(new):
+            renames[new] = old
+    return renames
+
+
+def staged_article_renames(root: Path, base: str | None = None) -> dict:
+    args = [
+        "diff",
+        "--cached",
+        "--find-renames",
+        "--diff-filter=R",
+        "--name-status",
+        "-z",
+    ]
+    if base is not None:
+        args.append(base)
+    return parse_article_renames(git(root, *args, "--", "briefings"))
+
+
+def committed_article_renames(root: Path, reference: str) -> dict:
+    return parse_article_renames(
+        git(
+            root,
+            "diff-tree",
+            "--root",
+            "--no-commit-id",
+            "--find-renames",
+            "--diff-filter=R",
+            "--name-status",
+            "--diff-merges=first-parent",
+            "-r",
+            "-z",
+            reference,
+            "--",
+            "briefings",
+        )
+    )
+
+
+def automatic_plan(
+    root: Path,
+    entries: dict,
+    changes: list,
+    message: str,
+    renames: dict | None = None,
+):
     """Plan generated files using staged or committed article versions."""
     subject = message.splitlines()[0].strip() if message.splitlines() else ""
     options = None
     if re.fullmatch(r"[^,\r\n]*,\s*[+-]?\d+\s*", subject):
         options = message_options(subject)
     planned = {}
+    renames = renames or {}
     articles = {p for p in entries if article_path(p)}
     expected = {meta_path(p) for p in articles}
     for article in articles:
@@ -282,22 +336,29 @@ def automatic_plan(root: Path, entries: dict, changes: list, message: str):
             if name in entries:
                 planned[name] = None
             continue
-        if options is None:
-            if name not in entries:
+        origin = meta_path(renames[article]) if article in renames else None
+        inherited = blob(root, entries[origin]) if origin in entries else None
+        selected = options
+        if selected is None:
+            if inherited is not None:
+                item = parse_metadata(inherited)
+                selected = (item.category, item.visible)
+            elif name not in entries:
                 raise MetadataError(
                     "New articles need category,0 or category,1 "
                     "as the first commit-message line."
                 )
-            continue
+            else:
+                continue
         path = root / name
         if path.is_symlink() or path.parent.is_symlink():
             raise MetadataError(f"Refusing a symlink metadata path: {name}")
         indexed = blob(root, entries[name]) if name in entries else None
         # Local preview metadata is generated too. Reuse its creation date.
-        old = indexed
+        old = indexed if indexed is not None else inherited
         if old is None and path.exists():
             old = path.read_bytes()
-        data = new_metadata(*options, old).render()
+        data = new_metadata(*selected, old).render()
         if data != indexed:
             planned[name] = data
     for name in expected:
@@ -327,7 +388,13 @@ def automatic_plan(root: Path, entries: dict, changes: list, message: str):
 
 
 def automatic_check(root: Path, message: str) -> None:
-    automatic_plan(root, index_files(root), changed_articles(root), message)
+    automatic_plan(
+        root,
+        index_files(root),
+        changed_articles(root),
+        message,
+        staged_article_renames(root),
+    )
 
 
 def tree_files(root: Path, reference: str) -> dict:
@@ -393,7 +460,11 @@ def automatic_metadata(root: Path, reference: str = "HEAD") -> list:
         return []
     entries = tree_files(root, head)
     planned = automatic_plan(
-        root, entries, changes, commit_message(root, head)
+        root,
+        entries,
+        changes,
+        commit_message(root, head),
+        committed_article_renames(root, head),
     )
     if not planned:
         return []
