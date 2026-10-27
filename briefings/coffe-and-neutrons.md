@@ -1,4 +1,4 @@
-# coffee and neutron transport
+# coffe and neutrons
 
 <script>
   MathJax = {tex: {inlineMath: [['$', '$'], ['\\(', '\\)']]}};
