@@ -1,6 +1,9 @@
-"""Prepare article metadata before Git commits, and validate the final index.
+"""Generate article metadata automatically from category,visibility messages.
 
-No command in this module creates a commit, pushes, or contacts the website.
+The message hook validates without writing. After the article commit succeeds,
+the post-commit hook makes a metadata-only follow-up commit, as in the original
+workflow. It uses a separate index so unrelated staged files stay untouched.
+No command pushes or contacts the website.
 """
 
 from __future__ import annotations
@@ -10,6 +13,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
@@ -86,12 +90,13 @@ def new_metadata(
     return Metadata(category_value(category), visible, created)
 
 
-def git(root: Path, *args: str) -> bytes:
+def git(root: Path, *args: str, env=None) -> bytes:
     result = subprocess.run(
         ["git", "--literal-pathspecs", *args],
         cwd=root,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env=env,
     )
     if result.returncode:
         raise MetadataError(result.stderr.decode("utf-8", "replace").strip())
@@ -260,9 +265,196 @@ def draft(root: Path, title: str, category: str) -> Path:
     return path
 
 
-COMMIT_HOOK = """#!/bin/sh
+def automatic_plan(root: Path, entries: dict, changes: list, message: str):
+    """Plan generated files using staged or committed article versions."""
+    subject = message.splitlines()[0].strip() if message.splitlines() else ""
+    options = None
+    if re.fullmatch(r"[^,\r\n]*,\s*[+-]?\d+\s*", subject):
+        options = message_options(subject)
+    planned = {}
+    articles = {p for p in entries if article_path(p)}
+    expected = {meta_path(p) for p in articles}
+    for article in articles:
+        blob(root, entries[article])
+    for article in changes:
+        name = meta_path(article)
+        if article not in entries:
+            if name in entries:
+                planned[name] = None
+            continue
+        if options is None:
+            if name not in entries:
+                raise MetadataError(
+                    "New articles need category,0 or category,1 "
+                    "as the first commit-message line."
+                )
+            continue
+        path = root / name
+        if path.is_symlink() or path.parent.is_symlink():
+            raise MetadataError(f"Refusing a symlink metadata path: {name}")
+        indexed = blob(root, entries[name]) if name in entries else None
+        # Local preview metadata is generated too. Reuse its creation date.
+        old = indexed
+        if old is None and path.exists():
+            old = path.read_bytes()
+        data = new_metadata(*options, old).render()
+        if data != indexed:
+            planned[name] = data
+    for name in expected:
+        if name not in entries and name not in planned:
+            raise MetadataError(
+                f"Missing metadata for unchanged article: {name}"
+            )
+        if name in entries:
+            parse_metadata(blob(root, entries[name]))
+    for name in entries:
+        p = PurePosixPath(name)
+        if (
+            p.parent == PurePosixPath("briefings/.meta")
+            and p.suffix == ".meta"
+        ):
+            if name not in expected and name not in planned:
+                raise MetadataError(f"Orphan metadata: {name}")
+    for name, data in planned.items():
+        path = root / name
+        if path.is_symlink() or path.parent.is_symlink():
+            raise MetadataError(f"Refusing a symlink metadata path: {name}")
+        current = path.read_bytes() if path.exists() else None
+        indexed = blob(root, entries[name]) if name in entries else None
+        if indexed is not None and current not in (None, indexed, data):
+            raise MetadataError(f"Preserve local metadata edits: {name}")
+    return planned
+
+
+def automatic_check(root: Path, message: str) -> None:
+    automatic_plan(root, index_files(root), changed_articles(root), message)
+
+
+def tree_files(root: Path, reference: str) -> dict:
+    entries = {}
+    for row in git(
+        root, "ls-tree", "-r", "-z", reference, "--", "briefings"
+    ).split(b"\0"):
+        if row:
+            header, path = row.split(b"\t", 1)
+            mode, _kind, oid = header.decode("ascii").split()
+            entries[os.fsdecode(path)] = (mode, oid)
+    return entries
+
+
+def committed_articles(root: Path, reference: str) -> list:
+    raw = git(
+        root,
+        "diff-tree",
+        "--root",
+        "--no-commit-id",
+        "--name-only",
+        "--no-renames",
+        "--diff-merges=first-parent",
+        "-r",
+        "-z",
+        reference,
+        "--",
+        "briefings",
+    )
+    return sorted(
+        os.fsdecode(p)
+        for p in raw.split(b"\0")
+        if p and article_path(os.fsdecode(p))
+    )
+
+
+def commit_message(root: Path, reference: str) -> str:
+    return git(root, "show", "-s", "--format=%B", reference).decode("utf-8")
+
+
+def metadata_commit(root: Path, expected_head: str, env: dict, hook_dir: Path):
+    if git(root, "rev-parse", "HEAD").decode().strip() != expected_head:
+        raise MetadataError(
+            "HEAD changed while generating metadata. Retry auto-meta."
+        )
+    # Only generated metadata differs from HEAD in this private index. Disable
+    # hooks for this follow-up so it cannot recurse into another post-commit.
+    return git(
+        root,
+        "-c",
+        f"core.hooksPath={hook_dir}",
+        "commit",
+        "-m",
+        "upsert-meta",
+        env=env,
+    )
+
+
+def automatic_metadata(root: Path, reference: str = "HEAD") -> list:
+    head = git(root, "rev-parse", "--verify", reference).decode().strip()
+    changes = committed_articles(root, head)
+    if not changes:
+        return []
+    entries = tree_files(root, head)
+    planned = automatic_plan(
+        root, entries, changes, commit_message(root, head)
+    )
+    if not planned:
+        return []
+    primary = index_files(root)
+    previous = {
+        name: (root / name).read_bytes() if (root / name).exists() else None
+        for name in planned
+    }
+    with tempfile.TemporaryDirectory(prefix="brief-metadata-") as temporary:
+        temp = Path(temporary)
+        hook_dir = temp / "hooks"
+        hook_dir.mkdir()
+        env = dict(os.environ, GIT_INDEX_FILE=str(temp / "index"))
+        git(root, "read-tree", head, env=env)
+        try:
+            for name, data in planned.items():
+                path = root / name
+                if data is None:
+                    if path.exists():
+                        path.unlink()
+                else:
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes(data)
+            git(root, "add", "-A", "--", *sorted(planned), env=env)
+            output = metadata_commit(root, head, env, hook_dir)
+        except (OSError, MetadataError):
+            for name, data in previous.items():
+                path = root / name
+                if data is None:
+                    if path.exists():
+                        path.unlink()
+                else:
+                    path.write_bytes(data)
+            raise
+    # Refresh only generated paths that had no separately staged edits.
+    current = index_files(root)
+    refresh = [
+        name
+        for name in planned
+        if primary.get(name) == entries.get(name)
+        and current.get(name) == primary.get(name)
+    ]
+    if refresh:
+        git(root, "add", "-A", "--", *sorted(refresh))
+    print(output.decode("utf-8", "replace"), end="")
+    return sorted(planned)
+
+
+LEGACY_COMMIT_HOOK = """#!/bin/sh
 # brief metadata validation hook
 exec python3 "$(git rev-parse --show-toplevel)/hooks.py" check "$@"
+"""
+
+COMMIT_HOOK = """#!/bin/sh
+# brief automatic metadata validation hook
+exec python3 "$(git rev-parse --show-toplevel)/hooks.py" auto-check "$@"
+"""
+
+POST_COMMIT_HOOK = """#!/bin/sh
+# brief automatic metadata commit hook
+exec python3 "$(git rev-parse --show-toplevel)/hooks.py" auto-meta
 """
 
 
@@ -273,9 +465,21 @@ def install(root: Path) -> None:
     if not hook_dir.is_absolute():
         hook_dir = root / hook_dir
     target = hook_dir / "commit-msg"
-    if target.exists() and target.read_text() != COMMIT_HOOK:
+    if target.exists() and target.read_text() not in (
+        COMMIT_HOOK,
+        LEGACY_COMMIT_HOOK,
+    ):
         raise MetadataError(
             "Preserve existing commit-msg hook. Integrate its check manually."
+        )
+    post = hook_dir / "post-commit"
+    if (
+        post.exists()
+        and post.read_text() != POST_COMMIT_HOOK
+        and "python3 hooks.py add_commit_meta" not in post.read_text()
+    ):
+        raise MetadataError(
+            "Preserve existing post-commit hook. Integrate metadata manually."
         )
     legacy = []
     for name, marker in (
@@ -296,8 +500,10 @@ def install(root: Path) -> None:
             path.rename(backup)
     target.write_text(COMMIT_HOOK)
     target.chmod(0o755)
+    post.write_text(POST_COMMIT_HOOK)
+    post.chmod(0o755)
     print(
-        "Installed commit-msg validation. "
+        "Installed automatic metadata generation from commit messages. "
         "Existing pre-commit checks are preserved."
     )
 
@@ -315,6 +521,15 @@ def main(argv=None) -> int:
         "check", help="Validate Git's current index without writing."
     )
     check.add_argument("message_file", type=Path)
+    auto_check = commands.add_parser(
+        "auto-check",
+        help="Validate automatic metadata generation without writing.",
+    )
+    auto_check.add_argument("message_file", type=Path)
+    commands.add_parser(
+        "auto-meta",
+        help="Create the automatic metadata-only follow-up commit.",
+    )
     preview = commands.add_parser(
         "draft", help="Write hidden local metadata, without staging."
     )
@@ -323,12 +538,12 @@ def main(argv=None) -> int:
     commands.add_parser(
         "install", help="Install validation and retire the owned legacy hooks."
     )
-    # Legacy commands fail safely rather than making follow-up commits.
     commands.add_parser(
-        "add_commit_meta", help="Retired command. Always refuses to commit."
+        "add_commit_meta", help="Compatibility name for auto-meta."
     )
     build = commands.add_parser(
-        "build_meta", help="Retired command. Use prepare before Git."
+        "build_meta",
+        help="Compatibility name for automatic message validation.",
     )
     build.add_argument("message_file", type=Path)
     build.add_argument("source", nargs="?")
@@ -347,23 +562,30 @@ def main(argv=None) -> int:
                 else args.message_file.read_text(encoding="utf-8")
             )
             if args.command == "build_meta":
-                raise MetadataError(
-                    "The old message hook runs too late to stage metadata. "
-                    "Run hooks.py prepare before Git instead."
-                )
+                automatic_check(root, message)
+                return 0
             paths = prepare(root, message)
             print(
                 "Prepared metadata: "
                 + (", ".join(paths) if paths else "no changes")
             )
+        elif args.command == "auto-check":
+            automatic_check(
+                root, args.message_file.read_text(encoding="utf-8")
+            )
+        elif args.command in {"auto-meta", "add_commit_meta"}:
+            try:
+                automatic_metadata(root)
+            except (MetadataError, OSError) as error:
+                raise MetadataError(
+                    "The article commit exists, but automatic metadata "
+                    f"generation failed: {error} "
+                    "After fixing that error, run hooks.py auto-meta."
+                ) from error
         elif args.command == "check":
             lines = args.message_file.read_text(encoding="utf-8").splitlines()
             validate_index(
                 root, index_files(root), lines[0].strip() if lines else ""
-            )
-        else:
-            raise MetadataError(
-                "Automatic metadata commits have been removed."
             )
     except (MetadataError, OSError) as error:
         print(f"brief metadata: {error}", file=sys.stderr)
